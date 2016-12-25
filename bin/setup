@@ -1,0 +1,55 @@
+#!/bin/bash
+# This script runs the same sequence as the CircleCI build
+
+# install nodejs
+if which node >/dev/null; then
+  echo "Nodejs is already installed"
+else
+  if [ $(uname) == "Darwin" ]; then
+    brew install node
+  else
+    curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+  fi
+fi
+
+# install MySQL
+if which mysql >/dev/null; then
+  echo "MySQL is already installed"
+else
+  if [ $(uname) == "Darwin" ]; then
+    brew install mysql
+  else
+    sudo apt-get -y install mysql-server
+  fi
+fi
+
+# start mysql
+UP=$(pgrep mysql | wc -l);
+if [ "$UP" -eq 0 ];
+then
+  if [ $(uname) == "Darwin" ]; then
+    mysql.server start
+  else
+    service mysql start
+  fi
+else
+  echo "MySQL is already started"
+fi
+
+# install npm modules
+if [ -d ./node_modules ]; then
+  echo "Npm modules already installed"
+else
+  npm install
+fi
+
+# copy keys file if not already exist
+BIN_DIR=`pwd`/bin
+$BIN_DIR/copy-config
+
+# run migration
+node src/db.js
+node_modules/.bin/sequelize db:migrate --env development
+node_modules/.bin/sequelize db:migrate --env test
+node_modules/.bin/sequelize db:migrate --env production

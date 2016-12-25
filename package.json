@@ -1,0 +1,51 @@
+{
+  "name": "psi-scraper",
+  "version": "1.0.0",
+  "description": "The Ion Cannon for scraper, with json configs, proxy, Gulp build system, parallelization, Sequelize data model.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint db/ src/ test/ --fix",
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha",
+    "start": "bin/start",
+    "production": "mkdir -p ./logs; NODE_ENV=production ./node_modules/forever/bin/forever --minUptime=1000 --spinSleepTime=1000 --killSignal=SIGTERM --uid psi-scaper-production -m 10 -a index.js | tee ./logs/psi-scaper-production.log",
+    "development": "mkdir -p ./logs; NODE_ENV=development ./node_modules/forever/bin/forever --minUptime=1000 --spinSleepTime=1000 --killSignal=SIGTERM --uid psi-scaper-development -m 10 -a index.js | tee ./logs/psi-scaper-development.log"
+  },
+  "dependencies": {
+    "bluebird": "^3.4.7",
+    "co": "^4.6.0",
+    "config": "^1.24.0",
+    "forever": "^0.15.3",
+    "gulp": "^3.9.1",
+    "lodash": "^4.17.3",
+    "mysql": "^2.12.0",
+    "mysql2": "^1.1.2",
+    "sequelize": "^3.28.0",
+    "winston": "^2.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.12.2",
+    "eslint-config-airbnb": "^13.0.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.8.0",
+    "sequelize-cli": "^2.5.1"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kengz/psi-scraper.git"
+  },
+  "keywords": [
+    "scraper",
+    "psi"
+  ],
+  "author": "kengz kengzwl@gmail.com",
+  "license": "MIT",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/kengz/psi-scraper/issues"
+  },
+  "homepage": "https://github.com/kengz/psi-scraper#readme"
+}
