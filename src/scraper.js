@@ -3,14 +3,9 @@ const xraySrc = require('./xray-src')
 
 // also need to keep all data at all flow
 
-// need:
-// target url generator
-// for each target (group), the selector pattern
-// also per group, the failure pattern and retry strategy
-// crawling pttern since I can crawl directly now
-// merge param and DB model
-
 // component for Ion Cannon:
+// asset generator: add proxy gatherer - vital for self-sustenance
+// design high level param and data model
 // target generator: url and selector
 // recursively defined: crawler logic on target
 // failure patterns, and retry mechanism
@@ -18,10 +13,6 @@ const xraySrc = require('./xray-src')
 // proxy logic and refresh mechanism
 // parallelization and running control
 
-// need header, at the final stage we were using plain
-// request with the header for scraping whole body,
-// then pass the body to xray only for parsing
-// maybe this? https://github.com/Crazometer/request-x-ray
 
 // const param = {
 //   dynamic: true,
