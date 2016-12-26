@@ -26,7 +26,10 @@ npm run lint
 
 ## Roadmap
 
-- [ ] data model and migration for VisitedLinks
+- [x] data model and migration for VisitedLinks
 - [ ] start the basic scraper
 - [ ] devise config format for HTML targets patterns, target path patterns, advanced behavior assets
+- [ ] gulp process control
+- [ ] proper exit for `forever`
+- [ ] scrape Flyertalk forum as first target
 

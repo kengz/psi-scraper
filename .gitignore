@@ -6,5 +6,8 @@ coverage/
 logs/
 npm-debug.log*
 
+# Project files
+assets/proxy/proxies.json
+
 # System files
 .DS_Store
