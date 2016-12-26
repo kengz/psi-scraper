@@ -1,4 +1,6 @@
 const _ = require('lodash')
+const Xray = require('x-ray')
+const requestDriver = require('request-x-ray')
 
 const agents = require('../assets/proxy/agents.json')
 const proxies = require('../assets/proxy/proxies.json')
@@ -16,7 +18,7 @@ function rotateAssets() {
 }
 
 // get the current request optoins
-function get() {
+function getOptions() {
   const options = _.pickBy({
     method: 'GET',
     headers: {
@@ -32,12 +34,29 @@ function get() {
 
 // renew the request options by rotating assets
 // return the new options
-function renew() {
-  const options = get()
+function renewOptions() {
+  const options = getOptions()
   rotateAssets()
   return options
 }
 
+// Return a new instance of xray with options
+function newXray(options) {
+  const xray = Xray()
+    .driver(requestDriver(options))
+    .timeout(MAX_REQUEST_TIMEOUT)
+  return xray
+}
+
+// get a new instance of Xray with the current assets
+function get() {
+  return newXray(getOptions())
+}
+
+// get a new instance of Xray with renewed assets
+function renew() {
+  return newXray(renewOptions())
+}
 
 module.exports = {
   get,

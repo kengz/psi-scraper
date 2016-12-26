@@ -1,8 +1,6 @@
 const Promise = require('bluebird')
-const Xray = require('x-ray')
-const requestDriver = require('request-x-ray')
 const log = require('./log')
-const requestOptions = require('./request-options')
+const xraySrc = require('./xray-src')
 
 // also need to keep all data at all flow
 
@@ -32,13 +30,6 @@ const requestOptions = require('./request-options')
 //   selector: 'a',
 // }
 
-// _.sample
-
-const options = requestOptions.get()
-// http://www.flyertalk.com/forum/
-const xray = Xray()
-  .driver(requestDriver(options))
-
 
 // function handler(err, res) {
 //   console.log(res) // Google
@@ -46,6 +37,8 @@ const xray = Xray()
 // xray('http://google.com', 'title')(handler).then(function(r) {
 //   console.log(r)
 // })
+
+const xray = xraySrc.get()
 
 function xrayAsync(url, selector) {
   return new Promise((resolve, reject) => {
