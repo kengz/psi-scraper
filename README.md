@@ -23,3 +23,10 @@ npm test
 ```shell
 npm run lint
 ```
+
+## Roadmap
+
+- [ ] data model and migration for VisitedLinks
+- [ ] start the basic scraper
+- [ ] devise config format for HTML targets patterns, target path patterns, advanced behavior assets
+

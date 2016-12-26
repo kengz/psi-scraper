@@ -4,6 +4,7 @@
   "description": "The Ion Cannon for scraper, with json configs, proxy, Gulp build system, parallelization, Sequelize data model.",
   "main": "index.js",
   "scripts": {
+    "setup": "bin/setup",
     "lint": "eslint db/ src/ test/ --fix",
     "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha",
     "start": "bin/start",

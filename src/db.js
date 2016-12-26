@@ -32,7 +32,7 @@ function createDb() {
   return Promise.any(
     _.map(createDbQueries, createDbQuery => sysSeq.query(createDbQuery))).then(() => {
       sysSeq.close()
-      log.info('Created the aiva databases')
+      log.info('Created the psi_scraper databases')
     }).catch((e) => { log.error(JSON.stringify(e, null, 2)) })
 }
 
