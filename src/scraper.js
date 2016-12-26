@@ -34,7 +34,7 @@ const requestOptions = require('./request-options')
 
 // _.sample
 
-const options = requestOptions.renew()
+const options = requestOptions.get()
 // http://www.flyertalk.com/forum/
 const xray = Xray()
   .driver(requestDriver(options))

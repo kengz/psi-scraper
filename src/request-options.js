@@ -15,8 +15,8 @@ function rotateAssets() {
   })
 }
 
-// renew the request options by rotating assets
-function renew() {
+// get the current request optoins
+function get() {
   const options = _.pickBy({
     method: 'GET',
     headers: {
@@ -27,12 +27,19 @@ function renew() {
     proxy: _.first(proxies),
     timeout: MAX_REQUEST_TIMEOUT,
   })
+  return options
+}
 
+// renew the request options by rotating assets
+// return the new options
+function renew() {
+  const options = get()
   rotateAssets()
   return options
 }
 
 
 module.exports = {
+  get,
   renew,
 }
