@@ -4,8 +4,6 @@ const requestDriver = require('request-x-ray')
 const log = require('./log')
 const requestOptions = require('./request-options')
 
-  // const phantomDriver = require('x-ray-phantom')
-
 // also need to keep all data at all flow
 
 // need:
