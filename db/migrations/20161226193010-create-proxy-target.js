@@ -1,6 +1,6 @@
 module.exports = {
   up(queryInterface, Sequelize) {
-    return queryInterface.createTable('VisitedLinks', {
+    return queryInterface.createTable('ProxyTargets', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -8,10 +8,18 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       url: {
+        allowNull: false,
         type: Sequelize.STRING,
       },
       success: {
+        allowNull: false,
         type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+      freq: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
       },
       createdAt: {
         allowNull: false,
@@ -24,6 +32,6 @@ module.exports = {
     })
   },
   down(queryInterface) {
-    return queryInterface.dropTable('VisitedLinks')
+    return queryInterface.dropTable('ProxyTargets')
   },
 }

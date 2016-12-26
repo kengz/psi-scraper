@@ -7,6 +7,7 @@ logs/
 npm-debug.log*
 
 # Project files
+config/*.json
 assets/proxy/proxies.json
 
 # System files

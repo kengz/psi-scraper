@@ -1,1 +1,1 @@
-const scraper = require('./src/scraper')
+const scraper = require('./projects/proxy')
