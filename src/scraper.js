@@ -30,27 +30,18 @@ const xraySrc = require('./xray-src')
 // }
 
 
-// function handler(err, res) {
-//   console.log(res) // Google
-// }
-// xray('http://google.com', 'title')(handler).then(function(r) {
-//   console.log(r)
-// })
-
-const xray = xraySrc.get()
-
+const xrayAsync = xraySrc.getAsync()
 
 const url = 'http://www.flyertalk.com/forum/'
 const selector = ['.alt1Active a@href']
-xray(url, selector)
+xrayAsync(url, selector)
   .then((res) => {
     log.info(JSON.stringify(res))
   })
 
-// // crawler eg
-// const Xray = require('x-ray')
-// const x = Xray()
 
+// // still need dynamic vs not
+// const x = xraySrc.get(false)
 // x('http://www.imdb.com/', {
 //   title: ['title'],
 //   links: x('.rhs-body .rhs-row', [{

@@ -7,7 +7,7 @@ const agents = require('../assets/proxy/agents.json')
 const proxies = require('../assets/proxy/proxies.json')
 const referers = require('../assets/proxy/referers.json')
 
-const MAX_REQUEST_TIMEOUT = 15000
+const MAX_REQUEST_TIMEOUT = 20000
 
 // rotate all assets: take the first and put to the last
 function rotateAssets() {
@@ -42,10 +42,12 @@ function renewOptions() {
 }
 
 // return a new instance of xray with options
-function newXray(options) {
+function newXray(options, useDriver) {
   const xray = Xray()
-    .driver(requestDriver(options))
     .timeout(MAX_REQUEST_TIMEOUT)
+  if (useDriver) {
+    xray.driver(requestDriver(options))
+  }
   return xray
 }
 
@@ -65,16 +67,26 @@ function newXrayAsync(xray) {
   return xrayAsync
 }
 
+// get a new instance of Xray with the current assets
+function get(useDriver = true) {
+  return newXray(getOptions(), useDriver)
+}
+
 // get a new instance of Xray async with the current assets
-function get() {
-  const xray = newXray(getOptions())
+function getAsync(useDriver = true) {
+  const xray = get(useDriver)
   const xrayAsync = newXrayAsync(xray)
   return xrayAsync
 }
 
+// get a new instance of Xray with renewed assets
+function renew(useDriver = true) {
+  return newXray(renewOptions(), useDriver)
+}
+
 // get a new instance of Xray async with renewed assets
-function renew() {
-  const xray = newXray(renewOptions())
+function renewAsync(useDriver = true) {
+  const xray = renew(useDriver)
   const xrayAsync = newXrayAsync(xray)
   return xrayAsync
 }
@@ -82,5 +94,7 @@ function renew() {
 
 module.exports = {
   get,
+  getAsync,
   renew,
+  renewAsync,
 }
