@@ -1,3 +1,4 @@
+const Promise = require('bluebird')
 const _ = require('lodash')
 const Xray = require('x-ray')
 const requestDriver = require('request-x-ray')
@@ -40,7 +41,7 @@ function renewOptions() {
   return options
 }
 
-// Return a new instance of xray with options
+// return a new instance of xray with options
 function newXray(options) {
   const xray = Xray()
     .driver(requestDriver(options))
@@ -48,15 +49,36 @@ function newXray(options) {
   return xray
 }
 
-// get a new instance of Xray with the current assets
-function get() {
-  return newXray(getOptions())
+// return a new instance of async xray
+function newXrayAsync(xray) {
+  const xrayAsync = function wrapper(url, selector) {
+    return new Promise((resolve, reject) => {
+      xray(url, selector)((err, res) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(res)
+        }
+      })
+    })
+  }
+  return xrayAsync
 }
 
-// get a new instance of Xray with renewed assets
-function renew() {
-  return newXray(renewOptions())
+// get a new instance of Xray async with the current assets
+function get() {
+  const xray = newXray(getOptions())
+  const xrayAsync = newXrayAsync(xray)
+  return xrayAsync
 }
+
+// get a new instance of Xray async with renewed assets
+function renew() {
+  const xray = newXray(renewOptions())
+  const xrayAsync = newXrayAsync(xray)
+  return xrayAsync
+}
+
 
 module.exports = {
   get,

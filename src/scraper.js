@@ -1,4 +1,3 @@
-const Promise = require('bluebird')
 const log = require('./log')
 const xraySrc = require('./xray-src')
 
@@ -40,21 +39,10 @@ const xraySrc = require('./xray-src')
 
 const xray = xraySrc.get()
 
-function xrayAsync(url, selector) {
-  return new Promise((resolve, reject) => {
-    xray(url, selector)((err, res) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(res)
-      }
-    })
-  })
-}
 
 const url = 'http://www.flyertalk.com/forum/'
 const selector = ['.alt1Active a@href']
-xrayAsync(url, selector)
+xray(url, selector)
   .then((res) => {
     log.info(JSON.stringify(res))
   })
