@@ -3,7 +3,7 @@ module.exports = function fn(sequelize, DataTypes) {
     url: DataTypes.STRING,
     ip: DataTypes.STRING,
     country: DataTypes.STRING,
-    speed: DataTypes.STRING,
+    speed: DataTypes.INTEGER,
     anonimity: DataTypes.STRING,
     usable: DataTypes.BOOLEAN,
   }, {

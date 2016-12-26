@@ -19,7 +19,7 @@ module.exports = {
         type: Sequelize.STRING,
       },
       speed: {
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
       },
       anonimity: {
         type: Sequelize.STRING,

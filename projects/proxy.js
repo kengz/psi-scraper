@@ -76,15 +76,14 @@ function spawn() {
       const data = extractData(res)
       log.info(_.size(data))
       log.info(JSON.stringify(data))
-      ProxyData.create(data)
+      _.each(data, (obj) => {
+        ProxyData.create(obj)
+      })
     })
 }
 
-// spawn()
-
-const data = JSON.parse('[{"url":"https://incloak.com/proxy-list/","ip":"socks4://5.223.148.9:1080","country":"Iran  Sari","speed":900,"anonimity":"High","usable":true},{"url":"https://incloak.com/proxy-list/","ip":"socks5://72.2.151.178:45554","country":"United States  Rolling Prairie","speed":2180,"anonimity":"High","usable":true}]')
-
-ProxyData.create(data[0])
+spawn()
+// !! still need to do findOrCreate
 
 // // // still need dynamic vs not
 // const x = xraySrc.get(false)
