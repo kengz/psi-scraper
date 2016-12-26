@@ -22,6 +22,7 @@
     "mysql2": "^1.1.2",
     "request-x-ray": "^0.1.4",
     "sequelize": "^3.28.0",
+    "stream-to-string": "^1.1.0",
     "winston": "^2.3.0",
     "x-ray": "^2.3.1"
   },

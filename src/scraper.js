@@ -3,8 +3,10 @@ const xraySrc = require('./xray-src')
 
 // also need to keep all data at all flow
 
+// change first target to proxy gatherer
 // component for Ion Cannon:
 // asset generator: add proxy gatherer - vital for self-sustenance
+// use the cannon itself to gather proxy
 // design high level param and data model
 // target generator: url and selector
 // recursively defined: crawler logic on target
@@ -20,20 +22,19 @@ const xraySrc = require('./xray-src')
 //   selector: 'a',
 // }
 
+const xray = xraySrc.get()
+// const url = 'http://www.flyertalk.com/forum/'
+const url = 'http://www.imdb.com/'
+// const selector = ['.alt1Active a@href']
+const selector = ['title']
 
-const xrayAsync = xraySrc.getAsync()
+xray(url, selector).promisify().then((res) => {
+  log.info(JSON.stringify(res))
+})
 
-const url = 'http://www.flyertalk.com/forum/'
-const selector = ['.alt1Active a@href']
-xrayAsync(url, selector)
-  .then((res) => {
-    log.info(JSON.stringify(res))
-  })
-
-
-// // still need dynamic vs not
+// // // still need dynamic vs not
 // const x = xraySrc.get(false)
-// x('http://www.imdb.com/', {
+// const a = x('http://www.imdb.com/', {
 //   title: ['title'],
 //   links: x('.rhs-body .rhs-row', [{
 //     text: 'a',
@@ -46,5 +47,6 @@ xrayAsync(url, selector)
 // })(function (err, obj) {
 //   console.log(err, obj)
 // })
+// console.log(a)
 
 // should defer most of crawling logic to program instead of static json spec

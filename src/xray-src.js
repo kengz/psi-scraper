@@ -1,5 +1,6 @@
 const Promise = require('bluebird')
 const _ = require('lodash')
+const sts = require('stream-to-string')
 const Xray = require('x-ray')
 const requestDriver = require('request-x-ray')
 
@@ -41,30 +42,41 @@ function renewOptions() {
   return options
 }
 
+function streamToPromise(stream) {
+  return new Promise((resolve, reject) => {
+    sts(stream, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    })
+  })
+}
+
+// inject a promisify function to xray using its stream()
+// called xray().promisify() to return a promise
+function injectWithPromisify(xray) {
+  const wrapx = _.wrap(xray, (fn, urlStr, scope, selector) => {
+    const initx = fn(urlStr, scope, selector)
+    const promisify = function pfn() {
+      return streamToPromise(initx.stream())
+    }
+    _.assign(initx, { promisify })
+    return initx
+  })
+  return wrapx
+}
+
 // return a new instance of xray with options
 function newXray(options, useDriver) {
-  const xray = Xray()
+  let xray = Xray()
     .timeout(MAX_REQUEST_TIMEOUT)
   if (useDriver) {
     xray.driver(requestDriver(options))
   }
+  xray = injectWithPromisify(xray)
   return xray
-}
-
-// return a new instance of async xray
-function newXrayAsync(xray) {
-  const xrayAsync = function wrapper(url, selector) {
-    return new Promise((resolve, reject) => {
-      xray(url, selector)((err, res) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(res)
-        }
-      })
-    })
-  }
-  return xrayAsync
 }
 
 // get a new instance of Xray with the current assets
@@ -72,29 +84,13 @@ function get(useDriver = true) {
   return newXray(getOptions(), useDriver)
 }
 
-// get a new instance of Xray async with the current assets
-function getAsync(useDriver = true) {
-  const xray = get(useDriver)
-  const xrayAsync = newXrayAsync(xray)
-  return xrayAsync
-}
-
 // get a new instance of Xray with renewed assets
 function renew(useDriver = true) {
   return newXray(renewOptions(), useDriver)
 }
 
-// get a new instance of Xray async with renewed assets
-function renewAsync(useDriver = true) {
-  const xray = renew(useDriver)
-  const xrayAsync = newXrayAsync(xray)
-  return xrayAsync
-}
-
 
 module.exports = {
   get,
-  getAsync,
   renew,
-  renewAsync,
 }
