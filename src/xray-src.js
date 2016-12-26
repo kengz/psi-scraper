@@ -44,11 +44,11 @@ function renewOptions() {
 
 function streamToPromise(stream) {
   return new Promise((resolve, reject) => {
-    sts(stream, (err, res) => {
+    sts(stream, (err, resStr) => {
       if (err) {
         reject(err)
       } else {
-        resolve(res)
+        resolve(JSON.parse(resStr))
       }
     })
   })
