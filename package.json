@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "setup": "bin/setup",
-    "lint": "eslint db/ src/ test/ --fix",
+    "lint": "eslint db/ projects/ src/ test/ --fix",
     "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha",
     "start": "node index.js",
     "production": "mkdir -p ./logs; NODE_ENV=production ./node_modules/forever/bin/forever --minUptime=1000 --spinSleepTime=1000 --killSignal=SIGTERM --uid psi-scaper-production -m 10 -a index.js | tee ./logs/psi-scaper-production.log",

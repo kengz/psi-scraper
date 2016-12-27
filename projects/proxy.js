@@ -1,7 +1,8 @@
+const Promise = require('bluebird')
 const _ = require('lodash')
 const log = require('../src/log')
 const xraySrc = require('../src/xray-src')
-const { ProxyTarget, ProxyData } = require('../db/models/index')
+const { ProxyTarget, ProxyData, sequelize } = require('../db/models/index')
 
 const spec = {
   useProxy: false,
@@ -18,35 +19,18 @@ const spec = {
   }],
 }
 
-// Setup steps: (refer to base project eg Proxy)
-// 1. create <project> in projects
-// 2. create and run project db migrations for <Project>Targets, <Project>Data
-// Targets fields: url, success, freq
-// Data fields: url, ...(your data)
-// 3. setup specs and scraper logic in projects/<project>.js
-
-// Run:
-// source proxy
-// seed target db
-// start scraping with parallelization, try logic
-// terminate on end or max
-
-// seed shit and gather proxy if needed
+// seed targets and start proxy project if needed
 function init() {
   const seedTarget = {
     url: spec.url,
   }
-
-  ProxyTarget.findOrCreate({
-    where: seedTarget,
-  })
+  return ProxyTarget.findOrCreate({ where: seedTarget })
 }
 
-// init()
-
+// extract data for db from xray result
 function extractData(res) {
   const usable = _.filter(res, (obj) => {
-    const accept = (parseInt(obj.speed) < 2500 && obj.anonimity != 'No')
+    const accept = (parseInt(obj.speed, 10) < 2500 && obj.anonimity !== 'No')
     return accept
   })
 
@@ -57,7 +41,7 @@ function extractData(res) {
       url: spec.url,
       ip,
       country: _.trim(obj.country),
-      speed: parseInt(obj.speed),
+      speed: parseInt(obj.speed, 10),
       anonimity: obj.anonimity,
       usable: true,
     }
@@ -65,41 +49,30 @@ function extractData(res) {
   return extracted
 }
 
+// create and run an instance of xray
 function spawn() {
+  log.info('spawning')
   const xray = xraySrc.get(spec.driver)
 
-  xray(spec.url, spec.scope, spec.selector)
+  return xray(spec.url, spec.scope, spec.selector)
     .paginate('.proxy__pagination a@href')
-    .limit(1)
+    .limit(20)
     .promisify()
     .then((res) => {
       const data = extractData(res)
-      log.info(_.size(data))
-      log.info(JSON.stringify(data))
-      _.each(data, (obj) => {
-        ProxyData.create(obj)
+      const promises = _.map(data, (proxy) => {
+        return ProxyData.findOrCreate({ where: proxy })
       })
+      return Promise.all(promises)
     })
 }
 
-spawn()
-// !! still need to do findOrCreate
+init()
+  .then(spawn)
+  .then(() => {
+    console.log('done')
+    sequelize.close()
+  })
 
-// // // still need dynamic vs not
-// const x = xraySrc.get(false)
-// const a = x('http://www.imdb.com/', {
-//   title: ['title'],
-//   links: x('.rhs-body .rhs-row', [{
-//     text: 'a',
-//     href: 'a@href',
-//     next_page: x('a@href', {
-//       title: 'title',
-//       heading: 'h1'
-//     })
-//   }])
-// })(function (err, obj) {
-//   console.log(err, obj)
-// })
-// console.log(a)
-
-// should defer most of crawling logic to program instead of static json spec
+// ProxyData.destroy({where: {}})
+// sequelize.close()
