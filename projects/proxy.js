@@ -1,7 +1,6 @@
 const co = require('co')
 const _ = require('lodash')
 const { Project } = require('./base-project')
-const log = require('../src/log')
 const xraySrc = require('../src/xray-src')
 const { ProxyTarget, ProxyData } = require('../db/models/index')
 
@@ -53,23 +52,16 @@ const scrape = co.wrap(function* fn(target) {
     .paginate('.proxy__pagination a@href')
     .limit(3)
     .promisify()
-    // .then((res) => {
-    //   console.log('thwowin err')
-    //   throw Error
-    // })
 
   // update the db
   const data = extractData(res)
-  yield _.map(data, proxy => ProxyData.findOrCreate({ where: proxy }))
+  yield _.map(data, (proxy) => {
+    return ProxyData.findOrCreate({ where: proxy })
+  })
   return data
 })
 
-
-// do a composition call
 const project = new Project(spec1, ProxyTarget, ProxyData, scrape)
 
 project.run()
-
-log.info('success')
-
-// need a reset: clear target and data
+// project.resetAndClear(true)

@@ -107,6 +107,24 @@ class Project {
       yield this.stop()
     }.bind(this))
   }
+
+  resetAndClear(confirm = false) {
+    return co(function* fn() {
+      if (confirm) {
+        log.warn('Delete Project Target and Data rows')
+        yield this.ProjectTarget.destroy({ where: {} })
+        yield this.ProjectData.destroy({ where: {} })
+      } else {
+        const warning = 'Are you sure you wish to reset project and clear all project data? You need to confirm by passing a true argument.'
+        log.warn(warning)
+      }
+      const tc = yield this.ProjectTarget.count({ where: {} })
+      const dc = yield this.ProjectData.count({ where: {} })
+      log.info(`Project Target rows: ${tc}`)
+      log.info(`Project Data rows: ${dc}`)
+      yield this.stop()
+    }.bind(this))
+  }
 }
 
 
