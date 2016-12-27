@@ -67,6 +67,11 @@ function spawn() {
     })
 }
 
+// start for each target
+function start(targets) {
+
+}
+
 init()
   .then(spawn)
   .then(() => {
