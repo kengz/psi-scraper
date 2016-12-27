@@ -28,7 +28,15 @@ class BaseProject {
       const targetObjs = yield ProxyTarget.findAll(options)
       const targets = _.map(targetObjs, 'dataValues')
       return targets
-    })
+    }.bind(this))
+  }
+
+  spawn(target) {
+    return co(function*() {
+      return this.scrape(target)
+        .then(_.partial(this.handleSuccess, target))
+        .catch(_.partial(this.handleFailure, target))
+    }.bind(this))
   }
 
   handleSuccess(target, res) {
@@ -45,7 +53,7 @@ class BaseProject {
         success: true,
         freq: target.freq + 1,
       }, { where: target })
-    })
+    }.bind(this))
   }
 
   handleFailure(target, err) {
@@ -56,14 +64,6 @@ class BaseProject {
       yield ProxyTarget.update({
         success: false,
       }, { where: target })
-    })
-  }
-
-  spawn(target) {
-    return co(function*() {
-      return this.scrape(target)
-        .then(_.partial(this.handleSuccess, target))
-        .catch(_.partial(this.handleFailure, target))
     }.bind(this))
   }
 
@@ -76,14 +76,14 @@ class BaseProject {
       log.info(`Total Project Data rows: ${c}`)
       log.info(`Total Project Target hit: ${targetHit}`)
       log.info(`Total Project Target remain: ${targetRemain}`)
-    })
+    }.bind(this))
   }
 
   stop() {
     return co(function*() {
       log.info('Stopping project')
       return sequelize.close()
-    })
+    }.bind(this))
   }
 }
 
@@ -190,8 +190,8 @@ const scrape = co.wrap(function*(target) {
     .limit(3)
     .promisify()
     .then(() => {
-      console.log('thwowin err')
-      throw Error
+      // console.log('thwowin err')
+      // throw Error
     })
 })
 
