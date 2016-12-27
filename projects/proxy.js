@@ -17,12 +17,14 @@ class BaseProject {
 
   // seed targets and start proxy project if needed
   init() {
+    log.info(`Initialize project: ${this.spec.name}`)
     const seedTarget = {
-      url: spec.url,
+      url: this.spec.url,
     }
     return ProxyTarget.findOrCreate({ where: seedTarget })
   }
 
+  // internal method for run
   findTargets(options = { limit: null, where: { success: false } }) {
     return co(function*() {
       const targetObjs = yield ProxyTarget.findAll(options)
@@ -32,6 +34,7 @@ class BaseProject {
   }
 
   spawn(target) {
+    log.info(`Spawn a scraper instance for target: ${target.url}`)
     return co(function*() {
       return this.scrape(target)
         .then(_.partial(this.handleSuccess, target))
@@ -39,15 +42,10 @@ class BaseProject {
     }.bind(this))
   }
 
+  // internal method for spawn
   handleSuccess(target, res) {
-    log.info(`Scraping successful for target: ${target.url}`)
+    log.info(`Data scraping successful for target: ${target.url}`)
     return co(function*() {
-      // update the db
-      const data = extractData(res)
-      yield _.map(data, (proxy) => {
-        return ProxyData.findOrCreate({ where: proxy })
-      })
-
       // update the target
       yield ProxyTarget.update({
         success: true,
@@ -56,10 +54,10 @@ class BaseProject {
     }.bind(this))
   }
 
+  // internal method fot spawn
   handleFailure(target, err) {
     log.error(_.toString(err))
     return co(function*() {
-
       // update the target
       yield ProxyTarget.update({
         success: false,
@@ -67,6 +65,26 @@ class BaseProject {
     }.bind(this))
   }
 
+  // start for each target
+  start() {
+    return co(function*() {
+      log.info('Start project')
+      let promises
+      const spec = this.spec
+      for (let i = 0; i < spec.maxTrials; i += spec.instances) {
+        let targets = yield this.findTargets({ limit: spec.instances })
+        targets = _.compact(_.times(spec.instances, (j) => {
+          return targets[j] || targets[0]
+        }))
+
+        // run scrapers
+        promises = yield _.map(targets, this.spawn.bind(this))
+      }
+      return Promise.all(promises)
+    }.bind(this))
+  }
+
+  // internal method for stop
   report() {
     return co(function*() {
       const c = yield ProxyData.count({ where: {} })
@@ -81,13 +99,25 @@ class BaseProject {
 
   stop() {
     return co(function*() {
-      log.info('Stopping project')
+      yield this.report()
+      log.info('Stop project')
       return sequelize.close()
+    }.bind(this))
+  }
+
+  run() {
+    return co(function*() {
+      yield this.init()
+      yield this.start()
+      yield this.stop()
     }.bind(this))
   }
 }
 
-const spec = {
+const spec1 = {
+  name: 'Proxy',
+  instances: 3,
+  maxTrials: 10,
   useProxy: false,
   driver: null,
   url: 'https://incloak.com/proxy-list/',
@@ -113,7 +143,7 @@ function extractData(res) {
     const type = _.toLower(_.trim(_.last(_.split(obj.type, ','))))
     const ip = `${type}://${obj.ip}:${obj.port}`
     return {
-      url: spec.url,
+      url: spec1.url,
       ip,
       country: _.trim(obj.country),
       speed: parseInt(obj.speed, 10),
@@ -124,120 +154,27 @@ function extractData(res) {
   return extracted
 }
 
-// // create and run an instance of xray
-// const spawn = co.wrap(function*(target) {
-//   log.info('Spawning a scraper instance')
-//   const xray = xraySrc.get(spec.driver)
-
-//   const res = yield xray(target.url, spec.scope, spec.selector)
-//     .paginate('.proxy__pagination a@href')
-//     .limit(3)
-//     .promisify()
-
-//   // update the db
-//   const data = extractData(res)
-//   const promises = yield _.map(data, (proxy) => {
-//     return ProxyData.findOrCreate({ where: proxy })
-//   })
-
-//   // outsource
-//   // update the target
-//   yield ProxyTarget.update({
-//     success: true,
-//     freq: target.freq + 1,
-//   }, { where: target })
-
-//   log.info('Scraper instance stops')
-//   return Promise.all(promises)
-// })
-
-
-// const spawnHandle = co.wrap(function*(target) {
-//   // success or failure
-//   res
-//   .then()
-// })
-
-// const handleSuccess = co.wrap(function*(target, res) {
-//   // update the db
-//   const data = extractData(res)
-//   yield _.map(data, (proxy) => {
-//     return ProxyData.findOrCreate({ where: proxy })
-//   })
-
-//   // update the target
-//   yield ProxyTarget.update({
-//     success: true,
-//     freq: target.freq + 1,
-//   }, { where: target })
-// })
-
-// const handleFailure = co.wrap(function*(target, err) {
-//   log.error(_.toString(err))
-
-//   // update the target
-//   yield ProxyTarget.update({
-//     success: false,
-//   }, { where: target })
-// })
-
 // create and run an instance of xray
 const scrape = co.wrap(function*(target) {
-  log.info('Spawning a scraper instance')
-  const xray = xraySrc.get(spec.driver)
-  return xray(target.url, spec.scope, spec.selector)
+  const xray = xraySrc.get(spec1.driver)
+  const res = yield xray(target.url, spec1.scope, spec1.selector)
     .paginate('.proxy__pagination a@href')
     .limit(3)
     .promisify()
-    .then(() => {
+    .then((res) => {
       // console.log('thwowin err')
       // throw Error
     })
-})
 
-// const spawn = co.wrap(function*(target) {
-//   return scrape(target)
-//     .then(_.partial(handleSuccess, target))
-//     .catch(_.partial(handleFailure, target))
-// })
+  // update the db
+  const data = extractData(res)
+  yield _.map(data, (proxy) => {
+    return ProxyData.findOrCreate({ where: proxy })
+  })
+})
 
 
 // do a composition call
-const projectBase = new BaseProject(spec, ProxyTarget, ProxyData, scrape)
+const project = new BaseProject(spec1, ProxyTarget, ProxyData, scrape)
 
-// start for each target
-const run = co.wrap(function*() {
-  log.info('Running project')
-  let targets = yield projectBase.findTargets({})
-  targets = _.fill(_.range(3), targets[0])
-  projectBase.spawn(targets[0])
-    // const promises = yield _.map(targets, projectBase.spawn)
-    // return Promise.all(promises)
-})
-
-
-
-const compose = co.wrap(function*() {
-  const lol = yield projectBase.init()
-    // const targets = yield projectBase.findTargets()
-    // console.log(targets)
-    // yield init()
-  yield run()
-    // yield report()
-    // yield stop()
-})
-
-compose()
-
-
-
-// init()
-//   .then(start)
-//   .then(spawn)
-//   .then(() => {
-//     console.log('done')
-//     sequelize.close()
-//   })
-
-// ProxyData.destroy({where: {}})
-// sequelize.close()
+project.run()
