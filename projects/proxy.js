@@ -5,7 +5,7 @@ const { ProxyTarget, ProxyData } = require('../db/models/index')
 
 const spec = {
   useProxy: false,
-  dynamic: true,
+  driver: null,
   url: 'https://incloak.com/proxy-list/',
   scope: '.proxy__t tr',
   selector: [{
@@ -66,7 +66,7 @@ function extractData(res) {
 }
 
 function spawn() {
-  const xray = xraySrc.get()
+  const xray = xraySrc.get(spec.driver)
 
   xray(spec.url, spec.scope, spec.selector)
     .paginate('.proxy__pagination a@href')

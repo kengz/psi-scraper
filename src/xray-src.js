@@ -3,6 +3,7 @@ const _ = require('lodash')
 const sts = require('stream-to-string')
 const Xray = require('x-ray')
 const requestDriver = require('request-x-ray')
+const phantomDriver = require('x-ray-phantom')
 
 const agents = require('../assets/proxy/agents.json')
 const proxies = require('../assets/proxy/proxies.json')
@@ -21,7 +22,7 @@ function rotateAssets() {
 
 // get the current request optoins
 function getOptions() {
-  const options = _.pickBy({
+  const options = {
     method: 'GET',
     headers: {
       Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -30,7 +31,8 @@ function getOptions() {
     },
     proxy: _.first(proxies),
     timeout: MAX_REQUEST_TIMEOUT,
-  })
+    webSecurity: false,
+  }
   return options
 }
 
@@ -69,24 +71,31 @@ function injectWithPromisify(xray) {
 }
 
 // return a new instance of xray with options
-function newXray(options, useDriver) {
+function newXray(options, driver) {
   let xray = Xray()
     .timeout(MAX_REQUEST_TIMEOUT)
-  if (useDriver) {
-    xray.driver(requestDriver(options))
+  switch (driver) {
+    case 'requestjs':
+      xray.driver(requestDriver(options))
+      break
+    case 'phantomjs':
+      xray.driver(phantomDriver(options))
+      break
+    default:
+      break
   }
   xray = injectWithPromisify(xray)
   return xray
 }
 
 // get a new instance of Xray with the current assets
-function get(useDriver = true) {
-  return newXray(getOptions(), useDriver)
+function get(driver) {
+  return newXray(getOptions(), driver)
 }
 
 // get a new instance of Xray with renewed assets
-function renew(useDriver = true) {
-  return newXray(renewOptions(), useDriver)
+function renew(driver) {
+  return newXray(renewOptions(), driver)
 }
 
 
