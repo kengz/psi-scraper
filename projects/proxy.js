@@ -1,4 +1,5 @@
 const Promise = require('bluebird')
+const co = require('co')
 const _ = require('lodash')
 const log = require('../src/log')
 const xraySrc = require('../src/xray-src')
@@ -49,35 +50,81 @@ function extractData(res) {
   return extracted
 }
 
+const findTargets = co.wrap(function*() {
+  const targetObjs = yield ProxyTarget.findAll({
+    // where: { success: false, freq: { lt: 10 } }
+    where: { }
+  })
+  const targets = _.map(targetObjs, 'dataValues')
+  return targets
+})
+
 // create and run an instance of xray
-function spawn() {
-  log.info('spawning')
+const spawn = co.wrap(function*(target) {
+  log.info('Spawning a scraper instance')
   const xray = xraySrc.get(spec.driver)
 
-  return xray(spec.url, spec.scope, spec.selector)
+  const res = yield xray(target.url, spec.scope, spec.selector)
     .paginate('.proxy__pagination a@href')
-    .limit(20)
+    .limit(3)
     .promisify()
-    .then((res) => {
-      const data = extractData(res)
-      const promises = _.map(data, (proxy) => {
-        return ProxyData.findOrCreate({ where: proxy })
-      })
-      return Promise.all(promises)
-    })
-}
+
+  // update the db
+  const data = extractData(res)
+  const promises = yield _.map(data, (proxy) => {
+    return ProxyData.findOrCreate({ where: proxy })
+  })
+
+  // update the target
+  yield ProxyTarget.update({
+    success: true,
+    freq: target.freq + 1,
+  }, { where: target })
+
+  log.info('Scraper instance stops')
+  return Promise.all(promises)
+})
 
 // start for each target
-function start(targets) {
+const run = co.wrap(function*() {
+  log.info('Running project')
+  let targets = yield findTargets()
+  targets = _.fill(_.range(3), targets[0])
+  const promises = yield _.map(targets, spawn)
+  return Promise.all(promises)
+})
 
-}
+const report = co.wrap(function*() {
+  log.info('Project report:')
+  const c = yield ProxyData.count({ where: {} })
+  log.info(`Total Project Data rows: ${c}`)
+  const targetHit = yield ProxyTarget.count({ where: { success: true } })
+  log.info(`Total Project Target hit: ${targetHit}`)
+  const targetRemain = yield ProxyTarget.count({ where: { success: false } })
+  log.info(`Total Project Target remain: ${targetRemain}`)
+})
 
-init()
-  .then(spawn)
-  .then(() => {
-    console.log('done')
-    sequelize.close()
-  })
+const stop = co.wrap(function*() {
+  log.info('Stopping project')
+  return sequelize.close()
+})
+
+const compose = co.wrap(function*() {
+  yield init()
+  yield run()
+  yield report()
+  yield stop()
+})
+
+compose()
+
+// init()
+//   .then(start)
+//   .then(spawn)
+//   .then(() => {
+//     console.log('done')
+//     sequelize.close()
+//   })
 
 // ProxyData.destroy({where: {}})
 // sequelize.close()
