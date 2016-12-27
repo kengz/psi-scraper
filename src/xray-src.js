@@ -10,7 +10,7 @@ const proxies = require('../assets/proxy/proxies.json')
 const referers = require('../assets/proxy/referers.json')
 
 const MAX_REQUEST_TIMEOUT = 20000
-const MAX_REQUEST_PER_SEC = 5
+const MAX_REQUEST_PER_SEC = 50
 
 // rotate all assets: take the first and put to the last
 function rotateAssets() {
