@@ -50,7 +50,7 @@ const scrape = co.wrap(function* fn(target) {
   const xray = xraySrc.get(spec1.driver)
   const res = yield xray(target.url, spec1.scope, spec1.selector)
     .paginate('.proxy__pagination a@href')
-    .limit(100)
+    .limit(30)
     .promisify()
 
   // update the db
@@ -64,4 +64,5 @@ const scrape = co.wrap(function* fn(target) {
 const project = new Project(spec1, ProxyTarget, ProxyData, scrape)
 
 project.run()
+
 // project.resetAndClear(true)

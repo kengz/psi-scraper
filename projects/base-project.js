@@ -111,11 +111,11 @@ class Project {
   resetAndClear(confirm = false) {
     return co(function* fn() {
       if (confirm) {
-        log.warn('Delete Project Target and Data rows')
+        log.warn(`Clearing Target and Data DB for Project: ${this.spec.name}`)
         yield this.ProjectTarget.destroy({ where: {} })
         yield this.ProjectData.destroy({ where: {} })
       } else {
-        const warning = 'Are you sure you wish to reset project and clear all project data? You need to confirm by passing a true argument.'
+        const warning = `Are you sure you wish to reset project ${this.spec.name} and clear all project data? You need to confirm by passing a true argument.`
         log.warn(warning)
       }
       const tc = yield this.ProjectTarget.count({ where: {} })
