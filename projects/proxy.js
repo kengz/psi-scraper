@@ -10,7 +10,7 @@ const spec = {
   instances: 2,
   maxTrials: 10,
   useProxy: false,
-  driver: 'phantomjs',
+  driver: 'requestjs',
   url: 'https://incloak.com/proxy-list/',
   scope: '.proxy__t tr',
   selector: [{
@@ -30,7 +30,7 @@ function extractData(res) {
     return accept
   })
 
-  const extracted = _.map(usable, (obj) => {
+  let extracted = _.map(usable, (obj) => {
     const type = _.toLower(_.trim(_.last(_.split(obj.type, ','))))
     const ip = `${type}://${obj.ip}:${obj.port}`
     return {
@@ -42,6 +42,7 @@ function extractData(res) {
       usable: true,
     }
   })
+  extracted = _.uniqBy(extracted, 'ip')
   return extracted
 }
 
@@ -50,12 +51,14 @@ const scrape = co.wrap(function* fn(target) {
   const xray = xraySrc.get(spec.driver)
   const res = yield xray(target.url, spec.scope, spec.selector)
     .paginate('.proxy__pagination a@href')
-    .limit(50)
+    .limit(5)
     .promisify()
 
   // update the db
   const data = extractData(res)
-  yield _.map(data, proxy => ProxyData.findOrCreate({ where: proxy }))
+  yield _.map(data, (proxy) => {
+    return ProxyData.findOrCreate({ where: proxy })
+  })
   return data
 })
 
