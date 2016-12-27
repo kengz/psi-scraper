@@ -92,23 +92,14 @@ class Project {
     }.bind(this))
   }
 
-  stop() {
-    return co(function* fn() {
-      yield this.report()
-      log.info('Stop project')
-      return sequelize.close()
-    }.bind(this))
-  }
-
   run() {
     return co(function* fn() {
       yield this.init()
       yield this.start()
-      yield this.stop()
     }.bind(this))
   }
 
-  resetAndClear(confirm = false) {
+  reset(confirm = false) {
     return co(function* fn() {
       if (confirm) {
         log.warn(`Clearing Target and Data DB for Project: ${this.spec.name}`)
@@ -122,7 +113,14 @@ class Project {
       const dc = yield this.ProjectData.count({ where: {} })
       log.info(`Project Target rows: ${tc}`)
       log.info(`Project Data rows: ${dc}`)
-      yield this.stop()
+    }.bind(this))
+  }
+
+  stop() {
+    return co(function* fn() {
+      yield this.report()
+      log.info('Stop project')
+      return sequelize.close()
     }.bind(this))
   }
 }
