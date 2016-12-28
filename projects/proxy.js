@@ -1,7 +1,6 @@
 const co = require('co')
 const _ = require('lodash')
 const { Project } = require('./base-project')
-const xraySrc = require('../src/xray-src')
 const { ProxyTarget, ProxyData } = require('../db/models/index')
 
 
@@ -47,8 +46,7 @@ function extractData(res) {
 }
 
 // create and run an instance of xray
-const scrape = co.wrap(function* fn(target) {
-  const xray = xraySrc.get(spec.driver)
+const scrape = co.wrap(function* fn(target, xray) {
   const res = yield xray(target.url, spec.scope, spec.selector)
     .paginate('.proxy__pagination a@href')
     .limit(5)
@@ -56,9 +54,7 @@ const scrape = co.wrap(function* fn(target) {
 
   // update the db
   const data = extractData(res)
-  yield _.map(data, (proxy) => {
-    return ProxyData.findOrCreate({ where: proxy })
-  })
+  yield _.map(data, proxy => ProxyData.findOrCreate({ where: proxy }))
   return data
 })
 

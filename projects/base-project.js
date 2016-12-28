@@ -2,6 +2,7 @@ const Promise = require('bluebird')
 const co = require('co')
 const _ = require('lodash')
 const log = require('../src/log')
+const xraySrc = require('../src/xray-src')
 const { sequelize } = require('../db/models/index')
 
 class Project {
@@ -33,7 +34,8 @@ class Project {
   spawn(target) {
     log.info(`Spawn a scraper instance for target: ${target.url}`)
     return co(function* fn() {
-      yield this.scrape(target)
+      const xray = xraySrc.get(this.spec.driver)
+      yield this.scrape(target, xray)
         .then(_.bind(this.handleSuccess, this, target))
         .catch(_.bind(this.handleFailure, this, target))
     }.bind(this))
