@@ -37,7 +37,7 @@ class Project {
   spawn(target) {
     log.info(`Spawn a scraper instance for target: ${target.url}`)
     return co(function* fn() {
-      const xray = xraySrc.get(this.spec.driver)
+      const xray = xraySrc.get(this.spec)
       yield this.scrape(target, xray)
         .then(_.bind(this.handleSuccess, this, target))
         .catch(_.bind(this.handleFailure, this, target))

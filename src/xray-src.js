@@ -39,7 +39,7 @@ function rotateAssets() {
 
 // get the current request optoins
 // renew the request options by rotating assets
-function getOptions() {
+function getOptions(spec) {
   const options = {
     method: 'GET',
     headers: {
@@ -47,10 +47,24 @@ function getOptions() {
       'User-Agent': _.sample(agents),
       Referer: _.sample(referers),
     },
-    proxy: _.first(proxies),
     timeout: MAX_REQUEST_TIMEOUT,
-    webSecurity: false,
   }
+
+  // set proxies
+  if (spec.useProxy) {
+    log.info(`Proxies list size: ${_.size(proxies)}`)
+    if (_.isEmpty(proxies)) {
+      log.error('spec.useProxy is true but no proxy is available, shutting down for safety')
+      process.exit()
+    }
+    _.assign(options, { proxy: _.first(proxies) })
+  }
+
+  // fix phantomjs driver shim error
+  if (spec.driver === 'phantomjs') {
+    _.assign(options, { webSecurity: false })
+  }
+
   rotateAssets()
   return options
 }
@@ -82,10 +96,13 @@ function injectWithPromisify(xray) {
 }
 
 // return a new instance of xray with options
-function newXray(options, driver) {
+function newXray(spec) {
+  const options = getOptions(spec)
   let xray = Xray()
     .timeout(MAX_REQUEST_TIMEOUT)
     .throttle(MAX_REQUEST_PER_SEC, '1s')
+
+  const driver = spec.driver
   switch (driver) {
     case 'requestjs':
       xray.driver(requestDriver(options))
@@ -101,8 +118,8 @@ function newXray(options, driver) {
 }
 
 // get a new instance of Xray with the current assets
-function get(driver) {
-  return newXray(getOptions(), driver)
+function get(spec) {
+  return newXray(spec)
 }
 
 
