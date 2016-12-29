@@ -19,7 +19,7 @@ class Project {
       log.info(`Initialize project: ${this.spec.name}`)
       if (this.spec.useProxy) {
         yield xraySrc.insertManualProxiesToDb()
-        yield xraySrc.loadDbProxies()
+        yield xraySrc.loadDbProxies(this.spec)
         yield xraySrc.verifyProxies(this.spec)
       }
       const seedTarget = {

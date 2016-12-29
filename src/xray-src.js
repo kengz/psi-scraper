@@ -12,6 +12,7 @@ const agents = require('../assets/proxy/agents.json')
 const manualProxies = require('../assets/proxy/proxies.json')
 const referers = require('../assets/proxy/referers.json')
 const { ProxyData } = require('../db/models/index')
+const { proxyProject } = require('../projects/proxy')
 
 const MAX_REQUEST_TIMEOUT = 60000
 const MAX_REQUEST_PER_SEC = 50
@@ -32,17 +33,32 @@ function insertManualProxiesToDb() {
   })
 }
 
-// load all proxies from db
-function loadDbProxies() {
-  return ProxyData.findAll({
-    attributes: ['ip'],
-    where: { usable: true },
+// source proxies from external source
+function sourceProxies() {
+  return co(function* fn() {
+    yield proxyProject.resetTarget(true)
+    yield proxyProject.run()
   })
-    .then((res) => {
-      proxies = _.map(res, 'dataValues.ip')
-      log.info(`${_.size(proxies)} Db proxies loaded from ProxyData`)
-      return proxies
+}
+
+// load all proxies from db
+function loadDbProxies(spec) {
+  // also source, call project
+  return co(function* fn() {
+    const res = yield ProxyData.findAll({
+      attributes: ['ip'],
+      where: { usable: true },
     })
+    proxies = _.map(res, 'dataValues.ip')
+    const proxiesSize = _.size(proxies)
+    log.info(`${proxiesSize} Db proxies loaded from ProxyData`)
+
+    if (proxiesSize < spec.instances) {
+      yield sourceProxies() // source externally
+      yield loadDbProxies(spec) // reload
+    }
+    return proxies
+  })
 }
 
 // rotate all assets: take the first and put to the last
@@ -120,11 +136,11 @@ function verifySingleProxy(spec, proxy) {
 // verify all proxies
 function verifyProxies(spec) {
   return co(function* fn() {
-    const reloadProxies = yield loadDbProxies()
+    const reloadProxies = yield loadDbProxies(spec)
     log.info('Verifying all proxies')
     const promises = yield _.map(reloadProxies, proxy => verifySingleProxy(spec, proxy))
 
-    yield loadDbProxies() // reload
+    yield loadDbProxies(spec) // reload
     return Promise.some(promises)
   })
 }
