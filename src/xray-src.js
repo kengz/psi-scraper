@@ -38,25 +38,19 @@ function rotateAssets() {
 }
 
 // get the current request optoins
+// renew the request options by rotating assets
 function getOptions() {
   const options = {
     method: 'GET',
     headers: {
       Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-      'User-Agent': _.first(agents),
-      Referer: _.first(referers),
+      'User-Agent': _.sample(agents),
+      Referer: _.sample(referers),
     },
     proxy: _.first(proxies),
     timeout: MAX_REQUEST_TIMEOUT,
     webSecurity: false,
   }
-  return options
-}
-
-// renew the request options by rotating assets
-// return the new options
-function renewOptions() {
-  const options = getOptions()
   rotateAssets()
   return options
 }
@@ -111,14 +105,8 @@ function get(driver) {
   return newXray(getOptions(), driver)
 }
 
-// get a new instance of Xray with renewed assets
-function renew(driver) {
-  return newXray(renewOptions(), driver)
-}
-
 
 module.exports = {
   get,
-  renew,
   loadDbProxies,
 }
