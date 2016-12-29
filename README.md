@@ -1,17 +1,23 @@
 # psi-scraper
-The Ion Cannon for scraper, with json configs, proxy, Gulp build system, parallelization, Sequelize data model.
+The Ion Cannon for scraper, with proxy, robust logic control, parallelization, Sequelize data model. **Use with caution.**
 
 
 ## Installation
 
-1. clone this repo
+1. fork and clone this repo
 2. install dependencies with `npm run setup` (this runs `npm i` too)
-3. setup `config/` for your db, run `npm i -g sequelize-cli`
+3. setup `config/` for your mysql db, run `npm i -g sequelize-cli`
 
 
 ## Usage
 
-All commands should be ran via `npm start`, which sources from `index.js`.
+Scrapings are organized as projects, which are constructed from the same `projects/base-project.js` framework with its logic. This allows you to only specify a minimal project-specific details under `projects/`, and run.
+
+An example project `projects/proxy.js` is already included. Written in 70 lines - it shows the setup speed of this tool. Also, the `proxy` project is used internally for automatic proxy scraping, which gets the list of proxies for your other projects.
+
+Specify projects to run in `index.js`, and run `npm start`.
+
+### Project setup
 
 First, setup your project. We will use the core `Proxy` project as example.
 
@@ -46,6 +52,5 @@ npm run lint
 
 ## Roadmap
 
-- [x] data model and migration for VisitedLinks
 - [ ] scrape Flyertalk forum as first target
 
