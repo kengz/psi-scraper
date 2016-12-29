@@ -1,8 +1,11 @@
 const Promise = require('bluebird')
+const co = require('co')
 const _ = require('lodash')
-const sts = require('stream-to-string')
-const Xray = require('x-ray')
+const request = require('co-request')
 const requestDriver = require('request-x-ray')
+const sts = require('stream-to-string')
+const url = require('url')
+const Xray = require('x-ray')
 const phantomDriver = require('x-ray-phantom')
 const log = require('./log')
 const agents = require('../assets/proxy/agents.json')
@@ -17,9 +20,9 @@ let proxies = manualProxies
 
 function loadDbProxies() {
   return ProxyData.findAll({
-    attributes: ['ip'],
-    where: { usable: true },
-  })
+      attributes: ['ip'],
+      where: { usable: true },
+    })
     .then((res) => {
       const autoProxies = _.map(res, 'dataValues.ip')
       proxies = manualProxies.concat(autoProxies)
@@ -37,9 +40,8 @@ function rotateAssets() {
   })
 }
 
-// get the current request optoins
-// renew the request options by rotating assets
-function getOptions(spec) {
+// generate the basic request options
+function genBaseOptions() {
   const options = {
     method: 'GET',
     headers: {
@@ -49,6 +51,13 @@ function getOptions(spec) {
     },
     timeout: MAX_REQUEST_TIMEOUT,
   }
+  return options
+}
+
+// get the current request optoins
+// renew the request options by rotating assets
+function getOptions(spec) {
+  const options = genBaseOptions()
 
   // set proxies
   if (spec.useProxy) {
@@ -68,6 +77,46 @@ function getOptions(spec) {
   rotateAssets()
   return options
 }
+
+
+// helper for verifyProxies
+function verifySingleProxy(spec, proxy) {
+  const targetUrl = url.parse(spec.url)
+  const targetHost = `${targetUrl.protocol}//${targetUrl.host}`
+  const options = genBaseOptions()
+  _.assign(options, {
+    url: targetHost,
+    proxy,
+  })
+  const whereClause = { ip: proxy }
+
+  return co(function*() {
+    let res = yield request(options)
+    if (res.statusCode !== 200) {
+      throw Error('statusCode not 200')
+    }
+    return ProxyData.update({
+      usable: true,
+    }, { where: whereClause })
+  }).catch(() => {
+    return ProxyData.update({
+      usable: false,
+    }, { where: whereClause })
+  })
+}
+
+// verify all proxies
+function verifyProxies(spec) {
+  const promises = _.map(proxies, (proxy) => {
+    return verifySingleProxy(spec, proxy)
+  })
+  return Promise.all(promises)
+    // update proxies
+    // also what if it aint exist
+}
+
+verifySingleProxy({ url: 'https://google.com/' }, 'http://218.191.247.51:80')
+
 
 function streamToPromise(stream) {
   return new Promise((resolve, reject) => {
