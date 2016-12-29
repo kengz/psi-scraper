@@ -16,16 +16,30 @@ const { ProxyData } = require('../db/models/index')
 const MAX_REQUEST_TIMEOUT = 60000
 const MAX_REQUEST_PER_SEC = 50
 
-let proxies = manualProxies
+let proxies
 
+// insert the manual proxies into proxy db
+function insertManualProxiesToDb() {
+  return co(function* fn() {
+    yield _.map(manualProxies, (ip) => {
+      const proxy = {
+        url: 'manual',
+        ip,
+        usable: true,
+      }
+      return ProxyData.findOrCreate({ where: proxy })
+    })
+  })
+}
+
+// load all proxies from db
 function loadDbProxies() {
   return ProxyData.findAll({
       attributes: ['ip'],
       where: { usable: true },
     })
     .then((res) => {
-      const autoProxies = _.map(res, 'dataValues.ip')
-      proxies = manualProxies.concat(autoProxies)
+      proxies = _.map(res, 'dataValues.ip')
       log.info('Db proxies loaded from ProxyData')
       return proxies
     })
@@ -107,12 +121,13 @@ function verifySingleProxy(spec, proxy) {
 
 // verify all proxies
 function verifyProxies(spec) {
-  const promises = _.map(proxies, (proxy) => {
-    return verifySingleProxy(spec, proxy)
+  return co(function*() {
+    const proxies = yield loadDbProxies()
+    const promises = yield _.map(proxies, (proxy) => {
+      return verifySingleProxy(spec, proxy)
+    })
+    return Promise.all(promises)
   })
-  return Promise.all(promises)
-    // update proxies
-    // also what if it aint exist
 }
 
 verifySingleProxy({ url: 'https://google.com/' }, 'http://218.191.247.51:80')
@@ -174,5 +189,6 @@ function get(spec) {
 
 module.exports = {
   get,
+  insertManualProxiesToDb,
   loadDbProxies,
 }

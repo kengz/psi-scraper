@@ -17,6 +17,7 @@ class Project {
   init() {
     return co(function* fn() {
       log.info(`Initialize project: ${this.spec.name}`)
+      yield xraySrc.insertManualProxiesToDb()
       yield xraySrc.loadDbProxies()
       const seedTarget = {
         url: this.spec.url,
