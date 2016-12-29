@@ -108,20 +108,38 @@ class Project {
     }.bind(this))
   }
 
-  reset(confirm = false) {
+  resetTarget(confirm = false) {
     return co(function* fn() {
       if (confirm) {
-        log.warn(`Clearing Target and Data DB for Project: ${this.spec.name}`)
+        log.warn(`Clearing only Target DB for Project: ${this.spec.name}`)
         yield this.ProjectTarget.destroy({ where: {} })
+      } else {
+        const warning = `Are you sure you wish to reset project ${this.spec.name} and clear all project targets? You need to confirm by passing a true argument.`
+        log.warn(warning)
+      }
+      const tc = yield this.ProjectTarget.count({ where: {} })
+      log.info(`Project Target rows: ${tc}`)
+    }.bind(this))
+  }
+
+  resetData(confirm = false) {
+    return co(function* fn() {
+      if (confirm) {
+        log.warn(`Clearing Data DB for Project: ${this.spec.name}`)
         yield this.ProjectData.destroy({ where: {} })
       } else {
         const warning = `Are you sure you wish to reset project ${this.spec.name} and clear all project data? You need to confirm by passing a true argument.`
         log.warn(warning)
       }
-      const tc = yield this.ProjectTarget.count({ where: {} })
       const dc = yield this.ProjectData.count({ where: {} })
-      log.info(`Project Target rows: ${tc}`)
       log.info(`Project Data rows: ${dc}`)
+    }.bind(this))
+  }
+
+  reset(confirm = false) {
+    return co(function* fn() {
+      yield this.resetTarget(confirm)
+      yield this.resetData(confirm)
     }.bind(this))
   }
 
