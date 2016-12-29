@@ -42,6 +42,24 @@ First, setup your project. We will use the core `Proxy` project as example.
 6. run `npm start`
 
 
+Sample log on running:
+
+```shell
+[Thu Dec 29 2016 13:36:34 GMT-0500 (EST)] WARN Clearing only Target DB for Project: Proxy
+[Thu Dec 29 2016 13:36:34 GMT-0500 (EST)] INFO Project Target rows: 0
+[Thu Dec 29 2016 13:36:34 GMT-0500 (EST)] INFO Initialize project: Proxy
+[Thu Dec 29 2016 13:36:34 GMT-0500 (EST)] INFO Start project
+[Thu Dec 29 2016 13:36:34 GMT-0500 (EST)] INFO Spawn a scraper instance for target: https://incloak.com/proxy-list/
+[Thu Dec 29 2016 13:36:34 GMT-0500 (EST)] INFO Spawn a scraper instance for target: https://incloak.com/proxy-list/
+[Thu Dec 29 2016 13:36:40 GMT-0500 (EST)] INFO Data scraping successful with 74 rows for target: https://incloak.com/proxy-list/
+[Thu Dec 29 2016 13:36:40 GMT-0500 (EST)] INFO Data scraping successful with 74 rows for target: https://incloak.com/proxy-list/
+[Thu Dec 29 2016 13:36:40 GMT-0500 (EST)] INFO Project report:
+[Thu Dec 29 2016 13:36:40 GMT-0500 (EST)] INFO Total Project Data rows: 186
+[Thu Dec 29 2016 13:36:40 GMT-0500 (EST)] INFO Total Project Target hit: 1
+[Thu Dec 29 2016 13:36:40 GMT-0500 (EST)] INFO Total Project Target remain: 0
+[Thu Dec 29 2016 13:36:40 GMT-0500 (EST)] INFO Stop project
+```
+
 ## Development
 
 #### ESLint
