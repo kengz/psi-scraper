@@ -35,9 +35,9 @@ function insertManualProxiesToDb() {
 // load all proxies from db
 function loadDbProxies() {
   return ProxyData.findAll({
-      attributes: ['ip'],
-      where: { usable: true },
-    })
+    attributes: ['ip'],
+    where: { usable: true },
+  })
     .then((res) => {
       proxies = _.map(res, 'dataValues.ip')
       log.info(`${_.size(proxies)} Db proxies loaded from ProxyData`)

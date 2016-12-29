@@ -17,10 +17,10 @@ class Project {
   init() {
     return co(function* fn() {
       log.info(`Initialize project: ${this.spec.name}`)
-      if (this.spec.useProxies) {
+      if (this.spec.useProxy) {
         yield xraySrc.insertManualProxiesToDb()
         yield xraySrc.loadDbProxies()
-        yield xraySrc.verifyProxies()
+        yield xraySrc.verifyProxies(this.spec)
       }
       const seedTarget = {
         url: this.spec.url,

@@ -8,7 +8,7 @@ const spec = {
   name: 'Proxy',
   instances: 2,
   maxTrials: 10,
-  useProxy: false,
+  useProxy: true,
   driver: 'requestjs',
   url: 'https://incloak.com/proxy-list/',
   scope: '.proxy__t tr',
