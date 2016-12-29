@@ -1,5 +1,7 @@
 # psi-scraper
-The Ion Cannon for scraper, with proxy, robust logic control, parallelization, Sequelize data model. **Use with caution.**
+The Ion Cannon for scraper, with proxy, robust logic control, parallelization, Sequelize data model.
+
+**Use with caution.** You can spawn 10 or 100,000 scraping instances with just a change of param, but please be considerate and don't DDOS people.
 
 
 ## Installation
