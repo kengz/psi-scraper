@@ -125,7 +125,7 @@ function verifyProxies(spec) {
     const promises = yield _.map(reloadProxies, proxy => verifySingleProxy(spec, proxy))
 
     yield loadDbProxies() // reload
-    return Promise.all(promises)
+    return Promise.some(promises)
   })
 }
 
