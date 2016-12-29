@@ -35,12 +35,12 @@ function insertManualProxiesToDb() {
 // load all proxies from db
 function loadDbProxies() {
   return ProxyData.findAll({
-      attributes: ['ip'],
-      where: { usable: true },
-    })
+    attributes: ['ip'],
+    where: { usable: true },
+  })
     .then((res) => {
       proxies = _.map(res, 'dataValues.ip')
-      log.info('Db proxies loaded from ProxyData')
+      log.info(`${_.size(proxies)} Db proxies loaded from ProxyData`)
       return proxies
     })
 }
@@ -104,34 +104,30 @@ function verifySingleProxy(spec, proxy) {
   })
   const whereClause = { ip: proxy }
 
-  return co(function*() {
-    let res = yield request(options)
+  return co(function* fn() {
+    const res = yield request(options)
     if (res.statusCode !== 200) {
       throw Error('statusCode not 200')
     }
     return ProxyData.update({
       usable: true,
     }, { where: whereClause })
-  }).catch(() => {
-    return ProxyData.update({
-      usable: false,
-    }, { where: whereClause })
-  })
+  }).catch(() => ProxyData.update({
+    usable: false,
+  }, { where: whereClause }))
 }
 
 // verify all proxies
 function verifyProxies(spec) {
-  return co(function*() {
-    const proxies = yield loadDbProxies()
-    const promises = yield _.map(proxies, (proxy) => {
-      return verifySingleProxy(spec, proxy)
-    })
+  return co(function* fn() {
+    const reloadProxies = yield loadDbProxies()
+    log.info('Verifying all proxies')
+    const promises = yield _.map(reloadProxies, proxy => verifySingleProxy(spec, proxy))
+
+    yield loadDbProxies() // reload
     return Promise.all(promises)
   })
 }
-
-verifySingleProxy({ url: 'https://google.com/' }, 'http://218.191.247.51:80')
-
 
 function streamToPromise(stream) {
   return new Promise((resolve, reject) => {
@@ -139,7 +135,11 @@ function streamToPromise(stream) {
       if (err) {
         reject(err)
       } else {
-        resolve(JSON.parse(resStr))
+        try {
+          resolve(JSON.parse(resStr))
+        } catch (e) {
+          reject(e)
+        }
       }
     })
   })
@@ -191,4 +191,5 @@ module.exports = {
   get,
   insertManualProxiesToDb,
   loadDbProxies,
+  verifyProxies,
 }
