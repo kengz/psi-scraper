@@ -4,13 +4,29 @@ const sts = require('stream-to-string')
 const Xray = require('x-ray')
 const requestDriver = require('request-x-ray')
 const phantomDriver = require('x-ray-phantom')
-
+const log = require('./log')
 const agents = require('../assets/proxy/agents.json')
-const proxies = require('../assets/proxy/proxies.json')
+const manualProxies = require('../assets/proxy/proxies.json')
 const referers = require('../assets/proxy/referers.json')
+const { ProxyData } = require('../db/models/index')
 
 const MAX_REQUEST_TIMEOUT = 60000
 const MAX_REQUEST_PER_SEC = 50
+
+let proxies = manualProxies
+
+function loadDbProxies() {
+  return ProxyData.findAll({
+    attributes: ['ip'],
+    where: { usable: true },
+  })
+    .then((res) => {
+      const autoProxies = _.map(res, 'dataValues.ip')
+      proxies = manualProxies.concat(autoProxies)
+      log.info('Db proxies loaded from ProxyData')
+      return proxies
+    })
+}
 
 // rotate all assets: take the first and put to the last
 function rotateAssets() {
@@ -104,4 +120,5 @@ function renew(driver) {
 module.exports = {
   get,
   renew,
+  loadDbProxies,
 }

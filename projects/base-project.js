@@ -15,11 +15,14 @@ class Project {
 
   // seed targets and start proxy project if needed
   init() {
-    log.info(`Initialize project: ${this.spec.name}`)
-    const seedTarget = {
-      url: this.spec.url,
-    }
-    return this.ProjectTarget.findOrCreate({ where: seedTarget })
+    return co(function* fn() {
+      log.info(`Initialize project: ${this.spec.name}`)
+      yield xraySrc.loadDbProxies()
+      const seedTarget = {
+        url: this.spec.url,
+      }
+      yield this.ProjectTarget.findOrCreate({ where: seedTarget })
+    }.bind(this))
   }
 
   // internal method for run
