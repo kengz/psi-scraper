@@ -9,7 +9,9 @@
     "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha",
     "start": "node index.js",
     "production": "mkdir -p ./logs; NODE_ENV=production ./node_modules/forever/bin/forever --minUptime=1000 --spinSleepTime=1000 --killSignal=SIGTERM --uid psi-scaper-production -m 10 -a index.js | tee ./logs/psi-scaper-production.log",
-    "development": "mkdir -p ./logs; NODE_ENV=development ./node_modules/forever/bin/forever --minUptime=1000 --spinSleepTime=1000 --killSignal=SIGTERM --uid psi-scaper-development -m 10 -a index.js | tee ./logs/psi-scaper-development.log"
+    "development": "mkdir -p ./logs; NODE_ENV=development ./node_modules/forever/bin/forever --minUptime=1000 --spinSleepTime=1000 --killSignal=SIGTERM --uid psi-scaper-development -m 10 -a index.js | tee ./logs/psi-scaper-development.log",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "bluebird": "^3.4.7",
@@ -25,7 +27,8 @@
     "stream-to-string": "^1.1.0",
     "winston": "^2.3.0",
     "x-ray": "^2.3.1",
-    "x-ray-phantom": "^1.0.1"
+    "x-ray-phantom": "^1.0.1",
+    "snyk": "^1.88.0"
   },
   "devDependencies": {
     "eslint": "^3.12.2",
@@ -52,5 +55,6 @@
   "bugs": {
     "url": "https://github.com/kengz/psi-scraper/issues"
   },
-  "homepage": "https://github.com/kengz/psi-scraper#readme"
+  "homepage": "https://github.com/kengz/psi-scraper#readme",
+  "snyk": true
 }
